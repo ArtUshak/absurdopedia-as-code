@@ -1,0 +1,23 @@
+wiki:
+  hosts:
+    test:
+      ansible_host: absurdopedia.wiki
+      home_directory: "/srv/http/wiki"
+      image_directory: "{{ home_directory }}/mediawiki-images"
+      target_directory: "{{ home_directory }}/wiki/w"
+      secret_directory: "{{ home_directory }}/mediawiki-misc/secret"
+      website_id: "absurdopedia"
+      website_name: "Абсурдопедия"
+      website_hostname: "absurdopedia.wiki"
+      wiki_admin_user: "Admin"
+      wiki_admin_password_file: "{{ secret_directory }}/AdminPassword"
+      password_sender_email: "{{ website_id }}@absurdopedia.wiki"
+      admin_email: "webmaster@absurdopedia.wiki"
+      database_name: "absurdopedia_prod"
+      database_user: "absurdopedia_prod"
+      database_password_file: "{{ secret_directory }}/MySQLPassword"
+      icon_image_url: "/w/images/5/5a/Uncyclopedia_logo_notext_saturated.svg"
+      icon_image_url_1x: "/w/images/9/98/Uncyclopedia_logo_saturated_export.svg"
+      nginx_symlink: "/etc/nginx/sites-locations/wiki/absurdopedia.wiki"
+      nginx_main: "/etc/nginx/sites-locations/wiki/absurdopedia.wiki.main"
+      nginx_maintenance: "/etc/nginx/sites-locations/wiki/absurdopedia.wiki.maintenance"

@@ -1,0 +1,518 @@
+<?php
+# http://www.mediawiki.org/wiki/Manual:Configuration_settings
+
+# Protect against web entry
+if ( !defined( 'MEDIAWIKI' ) ) {
+	exit;
+}
+
+## Uncomment this to disable output compression
+# $wgDisableOutputCompression = true;
+
+## Website name
+## Имя сайта
+$wgSitename = '{{ website_name }}';
+
+## Short page names
+## Короткие имена страниц (например /Special:Version или /Заглавная_страница)
+$wgScriptPath = '/w';
+$wgScriptExtension = '.php';
+$wgArticlePath = '/$1';
+
+## Server hostname with protocol
+## Имя сервера с протоколом
+# $wgOverrideHostname = '{{ website_hostname }}';
+$wgServer = 'https://{{ website_hostname }}';
+$wgCanonicalServer = 'https://{{ website_hostname }}';
+
+## The relative URL path to the skins directory
+$wgStylePath = "$wgScriptPath/skins";
+$wgStyleDirectory = "$IP/skins";
+
+$wgUploadPath = "$wgScriptPath/images";
+$wgUploadDirectory = "$IP/images";
+$wgSharedUploadPath = "$wgScriptPath/images";
+
+## Logo file path
+## Путь к файлу с логотипом
+$wgLogos = [
+	'1x' => '{{ icon_image_url_1x }}',
+	'icon' => '{{ icon_image_url }}'
+];
+
+## UPO means: this is also a user preference option
+$wgEnableEmail = true;
+$wgEnableUserEmail = true; # UPO
+
+$wgEmergencyContact = '{{ admin_email }}';
+$wgPasswordSender = '{{ password_sender_email }}';
+
+$wgEnotifUserTalk = false; # UPO
+$wgEnotifWatchlist = false; # UPO
+$wgEmailAuthentication = true;
+
+## Database settings (splitted to another file)
+## Настройки базы данных (вынесены в другой файл)
+require_once "$IP/../../mediawiki-misc/secret/LocalSettingsSecret.php";
+
+# MySQL specific settings
+$wgDBprefix = '';
+
+# MySQL table options to use during installation or update
+$wgDBTableOptions = 'ENGINE=InnoDB, DEFAULT CHARSET=binary';
+
+# Experimental charset support for MySQL 5.0.
+$wgDBmysql5 = false;
+
+## Cache settings
+## Настройки кэша
+$wgMainCacheType = CACHE_MEMCACHED;
+$wgParserCacheType = CACHE_MEMCACHED;
+$wgMesageCacheType = CACHE_MEMCACHED;
+$wgSessionCacheType = CACHE_DB;
+#$wgMemCachedServers = array();
+
+## To enable image uploads, make sure the 'images' directory
+## is writable, then set this to true:
+$wgEnableUploads = true;
+$wgGenerateThumbnailOnParse = true;
+$wgUseImageMagick = true;
+$wgImageMagickConvertCommand = '/usr/bin/convert-im6';
+$wgMaxUploadSize = 1024 * 1024 * 10;
+$wgMaxShellMemory = 1024 * 1024;
+
+#$wgSVGConverter = 'ImageMagick';
+$wgSVGConverter = 'rsvg';
+
+$wgMaxAnimatedGifArea = 1.25e9;
+
+# InstantCommons allows wiki to use images from http://commons.wikimedia.org
+$wgUseInstantCommons = false;
+
+## If you use ImageMagick (or any other shell command) on a
+## Linux server, this will need to be set to the name of an
+## available UTF-8 locale
+$wgShellLocale = 'en_US.utf8';
+
+## If you want to use image uploads under safe mode,
+## create the directories images/archive, images/thumb and
+## images/temp, and make them all writable. Then uncomment
+## this, if it's not already uncommented:
+#$wgHashedUploadDirectory = false;
+
+## Set $wgCacheDirectory to a writable directory on the web server
+## to make your wiki go slightly faster. The directory should not
+## be publically accessible from the web.
+$wgCacheDirectory = "$IP/cache";
+
+# Site language code, should be one of the list in ./languages/Names.php
+$wgLanguageCode = 'ru';
+
+# Default skin. Use the internal symbolic
+## names, 'monobook', 'vector':
+$wgDefaultSkin = 'vector';
+
+## License info
+## Инфа о лицензии
+$wgRightsUrl = 'https://{{ website_hostname }}/{{ website_name }}:Лицензия';
+$wgRightsText = 'CC BY-SA 4.0';
+#$wgRightsIcon = "$wgStylePath/common/images/cc-by-sa.png";
+
+# Query string length limit for ResourceLoader. You should only set this if
+# your web server has a query string length limit (then set it to that limit),
+# or if you have suhosin.get.max_value_length set in php.ini (then set it to
+# that value)
+$wgResourceLoaderMaxQueryLength = -1;
+$wgResourceLoaderMaxage = [
+	'unversioned' => 60 * 60,
+	'versioned' => 365 * 24 * 60 * 60
+];
+
+$wgTmpDirectory = "$wgUploadDirectory/temp";
+#$wgImageMagickTempDir = "$wgUploadDirectory/images/temp";
+
+$wgAllowUserCss = true;
+
+#$wgDebugLogFile = "$IP/mediawiki.log";
+
+#error_reporting( -1 );
+#ini_set( 'display_errors', 1 );
+
+## Disabling editing during maintenance
+## Откл. редактирования на время техработ
+#$wgReadOnly = 'Ведутся технические работы';
+
+## File formats
+## Форматы файлов
+$wgFileExtensions = array(
+	'png', 'gif', 'jpg', 'jpeg',
+	'svg', 'pdf', 'ogg', 'ogv'
+);
+
+## Namespaces
+## Пространства имён
+define('NS_PORTAL', 100);
+define('NS_PORTAL_TALK', 101);
+define('NS_FORUM', 110);
+define('NS_FORUM_TALK', 111);
+define('NS_ABSURDOTRASH', 112);
+define('NS_ABSURDOTRASH_TALK', 113);
+define('NS_LIBRARY', 114);
+define('NS_LIBRARY_TALK', 115);
+define('NS_HOWTO', 116);
+define('NS_HOWTO_TALK', 117);
+define('NS_QUOTES', 118);
+define('NS_QUOTES_TALK', 119);
+define('NS_QUESTION', 120);
+define('NS_QUESTION_TALK', 121);
+
+$wgExtraNamespaces[NS_PORTAL] = 'Портал';
+$wgExtraNamespaces[NS_PORTAL_TALK] = 'Обсуждение_портала';
+$wgExtraNamespaces[NS_FORUM] = 'Форум';
+$wgExtraNamespaces[NS_FORUM_TALK] = 'Обсуждение_форума';
+$wgExtraNamespaces[NS_ABSURDOTRASH] = 'Абсурдилище';
+$wgExtraNamespaces[NS_ABSURDOTRASH_TALK] = 'Обсуждение_в_Абсурдилище';
+$wgExtraNamespaces[NS_LIBRARY] = 'Абсурдотека';
+$wgExtraNamespaces[NS_LIBRARY_TALK] = 'Обсуждение_Абсурдотеки';
+$wgExtraNamespaces[NS_HOWTO] = 'Как_правильно';
+$wgExtraNamespaces[NS_HOWTO_TALK] = 'Обсуждение_руководства';
+$wgExtraNamespaces[NS_QUOTES] = 'Абсурдоцитатник';
+$wgExtraNamespaces[NS_QUOTES_TALK] = 'Обсуждение_Абсурдоцитатника';
+$wgExtraNamespaces[NS_QUESTION] = 'Вопрос-ответ';
+$wgExtraNamespaces[NS_QUESTION_TALK] = 'Обсуждение_вопроса';
+
+$wgExtraSignatureNamespaces = [NS_PROJECT, NS_FORUM];
+
+$wgNamespaceAliases = array(
+	'АП' => NS_PROJECT
+);
+
+$wgContentNamespaces = [NS_MAIN, NS_LIBRARY, NS_HOWTO, NS_QUOTES];
+
+$wgNamespacesToBeSearchedDefault = array(
+	NS_MAIN => true,
+	NS_LIBRARY => true,
+	NS_HOWTO => true,
+	NS_QUOTES => true,
+	NS_QUESTION => true,
+);
+
+## Extensions
+## Расширения
+
+wfLoadExtension( 'ParserFunctions' );
+$wgPFEnableStringFunctions = true;
+
+wfLoadExtension( 'AbuseFilter' );
+wfLoadExtension( 'AJAXPoll' );
+wfLoadExtension( 'AntiSpoof' );
+wfLoadExtension( 'CategoryTree');
+wfLoadExtension( 'CharInsert' );
+wfLoadExtension( 'CheckUser' );
+wfLoadExtension( 'Cite' );
+wfLoadExtension( 'CiteThisPage' );
+wfLoadExtension( 'CodeEditor' );
+wfLoadExtension( 'CodeMirror' );
+wfLoadExtension( 'ConfirmEdit' );
+wfLoadExtension( 'CreatePageUw' );
+wfLoadExtension( 'CSS' );
+wfLoadExtension( 'DynamicPageList4' );
+wfLoadExtension( 'EditCountNeue' );
+wfLoadExtension( 'Gadgets' );
+wfLoadExtension( 'ImageMap' );
+wfLoadExtension( 'InputBox' );
+wfLoadExtension( 'MagicNoCache' );
+wfLoadExtension( 'Nuke' );
+wfLoadExtension( 'Poem' );
+wfLoadExtension( 'RandomSelection' );
+wfLoadExtension( 'Renameuser' );
+wfLoadExtension( 'RSS' );
+wfLoadExtension( 'SpamBlacklist' );
+wfLoadExtension( 'Variables' );
+wfLoadExtension( 'WikiEditor' );
+wfLoadExtension( 'YouTube' );
+
+wfLoadExtension( 'TemplateStyles' );
+$wgTemplateStylesAllowedUrls['image'] []= "<^/w/images/>";
+$wgTemplateStylesNamespaces[NS_PORTAL] = true;
+
+wfLoadExtension( 'MassEditRegex' );
+
+wfLoadExtension( 'Math' );
+$wgMathValidModes = array('native', 'mathjax', 'source', 'mathml');
+$wgDefaultUserOptions['math'] = 'native';
+
+wfLoadExtension( 'Interwiki' );
+$wgInterwikiMagic = true;
+
+wfLoadExtension( 'TorBlock' );
+$wgTorDisableAdminBlocks = false;
+$wgTorAllowedActions = array( );
+$wgTorLoadNodes = true;
+
+wfLoadExtension( 'MobileFrontend' );
+$wgMFAutodetectMobileView = true;
+
+wfLoadExtension( 'Description2' );
+$wgEnableMetaDescriptionFunctions = true;
+
+wfLoadExtension( 'GTag' );
+$wgGTagAnalyticsId = 'UA-136389110-1';
+$wgGTagTrackSensitivePages = false;
+
+wfLoadExtension( 'TimedMediaHandler' );
+$wgFFmpegLocation = '/usr/bin/ffmpeg';
+$wgTmhWebPlayer = 'mwembed';
+
+wfLoadExtension( 'SyntaxHighlight_GeSHi' );
+
+wfLoadExtension( 'NativeSvgHandler' );
+
+wfLoadExtension( 'UrlGetParameters' );
+
+wfLoadExtension( 'LogoFunctions' );
+
+## Skins
+## Скины
+
+wfLoadSkin( "Vector" );
+wfLoadSkin( "MonoBook" );
+wfLoadSkin( "MinervaNeue" );
+$wgMFDefaultSkinClass = "SkinMinerva";
+
+## Default user preferences
+## Пользовательские настройки по умолчанию
+$wgDefaultUserOptions['rcenhancedfilters-disable'] = true;
+$wgDefaultUserOptions['wlenhancedfilters-disable'] = true;
+
+## User group rights
+## Права групп участников
+
+# Group: bureaucrat (king)
+# Группа: бюрократ (король)
+$wgGroupPermissions['bureaucrat']['autopatrol'] = true;
+$wgGroupPermissions['bureaucrat']['rollback'] = true;
+$wgGroupPermissions['bureaucrat']['undelete'] = true;
+$wgGroupPermissions['bureaucrat']['skipcaptcha'] = true;
+$wgGroupPermissions['bureaucrat']['upload'] = true;
+$wgGroupPermissions['bureaucrat']['reupload'] = true;
+$wgGroupPermissions['bureaucrat']['protect'] = true;
+$wgGroupPermissions['bureaucrat']['editinterface'] = true;
+$wgGroupPermissions['bureaucrat']['editsitecss'] = true;
+$wgGroupPermissions['bureaucrat']['editsitejs'] = true;
+$wgGroupPermissions['bureaucrat']['editsitejson'] = true;
+$wgGroupPermissions['bureaucrat']['abusefilter-modify'] = true;
+$wgGroupPermissions['bureaucrat']['import'] = true;
+$wgGroupPermissions['bureaucrat']['importupload'] = true;
+$wgGroupPermissions['bureaucrat']['ipblock-exempt'] = true;
+$wgGroupPermissions['bureaucrat']['noratelimit'] = true;
+$wgGroupPermissions['bureaucrat']['autoconfirmed'] = true;
+$wgGroupPermissions['bureaucrat']['mergehistory'] = true;
+$wgGroupPermissions['bureaucrat']['markbotedits'] = true;
+$wgGroupPermissions['bureaucrat']['patrol'] = true;
+$wgGroupPermissions['bureaucrat']['move-rootuserpages'] = true;
+$wgGroupPermissions['bureaucrat']['move'] = true;
+$wgGroupPermissions['bureaucrat']['move-subpages'] = true;
+$wgGroupPermissions['bureaucrat']['movefile'] = true;
+$wgGroupPermissions['bureaucrat']['browsearchive'] = true;
+$wgGroupPermissions['bureaucrat']['editsemiprotected'] = true;
+$wgGroupPermissions['bureaucrat']['editprotected'] = true;
+$wgGroupPermissions['bureaucrat']['deletedhistory'] = true;
+$wgGroupPermissions['bureaucrat']['abusefilter-log-detail'] = true;
+$wgGroupPermissions['bureaucrat']['unwatchedpages'] = true;
+$wgGroupPermissions['bureaucrat']['deletedtext'] = true;
+$wgGroupPermissions['bureaucrat']['delete'] = true;
+$wgGroupPermissions['bureaucrat']['bigdelete'] = true;
+$wgGroupPermissions['bureaucrat']['apihighlimits'] = true;
+$wgGroupPermissions['bureaucrat']['interwiki'] = true;
+$wgGroupPermissions['bureaucrat']['unblockself'] = true;
+$wgGroupPermissions['bureaucrat']['nuke'] = true;
+$wgGroupPermissions['bureaucrat']['editsitejson'] = true;
+$wgGroupPermissions['bureaucrat']['edituserjson'] = true;
+$wgGroupPermissions['bureaucrat']['block'] = true;
+$wgGroupPermissions['bureaucrat']['blockemail'] = true;
+$wgGroupPermissions['bureaucrat']['suppressredirect'] = true;
+$wgGroupPermissions['bureaucrat']['managechangetags'] = true;
+$wgGroupPermissions['bureaucrat']['deletechangetags'] = true;
+$wgGroupPermissions['bureaucrat']['createaccount'] = true;
+$wgGroupPermissions['bureaucrat']['editusercss'] = true;
+$wgGroupPermissions['bureaucrat']['edituserjs'] = true;
+$wgGroupPermissions['bureaucrat']['edituserjson'] = true;
+# Added 2021-08-17
+# Добавлено 2021-08-17
+$wgGroupPermissions['bureaucrat']['abusefilter-log'] = true;
+
+# Group: sysop (marquis)
+# Группа: админ (маркиз)
+$wgGroupPermissions['sysop']['nuke'] = false;
+$wgGroupPermissions['sysop']['unblockself'] = true;
+$wgGroupPermissions['sysop']['abusefilter-log-detail'] = true;
+$wgGroupPermissions['sysop']['abusefilter-log'] = true;
+# Added 2021-08-17
+# Добавлено 2021-08-17
+$wgGroupPermissions['bureaucrat']['abusefilter-log'] = true;
+
+$wgRemoveGroups['sysop'] = array( 'knight', 'baron' );
+$wgAddGroups['sysop'] = array( 'knight', 'baron' );
+
+# Group: technician (wizard)
+# Группа: техник (чародей)
+$wgGroupPermissions['technician']['autopatrol'] = true;
+$wgGroupPermissions['technician']['rollback'] = true;
+$wgGroupPermissions['technician']['undelete'] = true;
+$wgGroupPermissions['technician']['skipcaptcha'] = true;
+$wgGroupPermissions['technician']['upload'] = true;
+$wgGroupPermissions['technician']['reupload'] = true;
+$wgGroupPermissions['technician']['editinterface'] = true;
+$wgGroupPermissions['technician']['editsitecss'] = true;
+$wgGroupPermissions['technician']['editsitejs'] = true;
+$wgGroupPermissions['technician']['editsitejson'] = true;
+$wgGroupPermissions['technician']['protect'] = true;
+$wgGroupPermissions['technician']['abusefilter-modify'] = true;
+$wgGroupPermissions['technician']['import'] = true;
+$wgGroupPermissions['technician']['importupload'] = true;
+$wgGroupPermissions['technician']['ipblock-exempt'] = true;
+$wgGroupPermissions['technician']['noratelimit'] = true;
+$wgGroupPermissions['technician']['autoconfirmed'] = true;
+$wgGroupPermissions['technician']['mergehistory'] = true;
+$wgGroupPermissions['technician']['markbotedits'] = true;
+$wgGroupPermissions['technician']['patrol'] = true;
+$wgGroupPermissions['technician']['move-rootuserpages'] = true;
+$wgGroupPermissions['technician']['move'] = true;
+$wgGroupPermissions['technician']['move-subpages'] = true;
+$wgGroupPermissions['technician']['movefile'] = true;
+$wgGroupPermissions['technician']['suppressredirect'] = true;
+$wgGroupPermissions['technician']['browsearchive'] = true;
+$wgGroupPermissions['technician']['editsemiprotected'] = true;
+$wgGroupPermissions['technician']['editprotected'] = true;
+$wgGroupPermissions['technician']['deletedhistory'] = true;
+$wgGroupPermissions['technician']['abusefilter-log-detail'] = true;
+$wgGroupPermissions['technician']['unwatchedpages'] = true;
+$wgGroupPermissions['technician']['deletedtext'] = true;
+$wgGroupPermissions['technician']['delete'] = true;
+$wgGroupPermissions['technician']['bigdelete'] = true;
+$wgGroupPermissions['technician']['apihighlimits'] = true;
+$wgGroupPermissions['technician']['interwiki'] = true;
+$wgGroupPermissions['technician']['unblockself'] = true;
+$wgGroupPermissions['technician']['renameuser'] = true;
+# Added 2021-05-13
+# Добавлено 2021-05-13
+$wgGroupPermissions['technician']['block'] = true;
+$wgGroupPermissions['technician']['blockemail'] = true;
+# Added 2021-08-17
+# Добавлено 2021-08-17
+$wgGroupPermissions['technician']['abusefilter-log'] = true;
+
+$wgAddGroups['technician'] = array( 'bot' );
+
+# Group: {expert} (baron)
+# Группа: эксперт (барон)
+$wgGroupPermissions['baron']['autopatrol'] = true;
+$wgGroupPermissions['baron']['rollback'] = true;
+$wgGroupPermissions['baron']['undelete'] = true;
+$wgGroupPermissions['baron']['skipcaptcha'] = true;
+$wgGroupPermissions['baron']['upload'] = true;
+$wgGroupPermissions['baron']['protect'] = true;
+$wgGroupPermissions['baron']['noratelimit'] = true;
+$wgGroupPermissions['baron']['autoconfirmed'] = true;
+$wgGroupPermissions['baron']['patrol'] = true;
+$wgGroupPermissions['baron']['move-rootuserpages'] = true;
+$wgGroupPermissions['baron']['move'] = true;
+$wgGroupPermissions['baron']['move-subpages'] = true;
+$wgGroupPermissions['baron']['movefile'] = true;
+$wgGroupPermissions['baron']['browsearchive'] = true;
+$wgGroupPermissions['baron']['editsemiprotected'] = true;
+$wgGroupPermissions['baron']['deletedhistory'] = true;
+$wgGroupPermissions['baron']['deletedtext'] = true;
+$wgGroupPermissions['baron']['delete'] = true;
+$wgGroupPermissions['baron']['bigdelete'] = true;
+$wgGroupPermissions['baron']['bigdelete'] = true;
+# Added 2021-08-17
+# Добавлено 2021-08-17
+$wgGroupPermissions['baron']['abusefilter-log'] = true;
+
+# Group: {rollback} (knight)
+# Группа: откатывающий (рыцарь)
+$wgGroupPermissions['knight']['autopatrol'] = true;
+$wgGroupPermissions['knight']['rollback'] = true;
+$wgGroupPermissions['knight']['skipcaptcha'] = true;
+$wgGroupPermissions['knight']['upload'] = true;
+$wgGroupPermissions['knight']['protect'] = true;
+$wgGroupPermissions['knight']['autoconfirmed'] = true;
+$wgGroupPermissions['knight']['patrol'] = true;
+$wgGroupPermissions['knight']['browsearchive'] = true;
+$wgGroupPermissions['knight']['editsemiprotected'] = true;
+$wgGroupPermissions['knight']['deletedhistory'] = true;
+$wgGroupPermissions['knight']['deletedtext'] = true;
+$wgGroupPermissions['knight']['move'] = true;
+
+# Group: user
+# Группа: пользователь
+$wgGroupPermissions['user']['move'] = false;
+$wgGroupPermissions['user']['movefile'] = false;
+$wgGroupPermissions['user']['move-categorypages'] = false;
+$wgGroupPermissions['user']['move-rootuserpages'] = false;
+$wgGroupPermissions['user']['reupload'] = false;
+$wgGroupPermissions['user']['move'] = false;
+$wgGroupPermissions['user']['skipcaptcha'] = true;
+$wgGroupPermissions['user']['ipblock-exempt'] = true;
+$wgGroupPermissions['user']['noratelimit'] = true;
+$wgGroupPermissions['user']['autopatrol'] = true;
+$wgGroupPermissions['user']['ajaxpoll-view-results'] = true;
+$wgGroupPermissions['user']['ajaxpoll-vote'] = true;
+$wgGroupPermissions['user']['editmyoptions'] = true;
+$wgGroupPermissions['user']['editmyprivateinfo'] = true;
+$wgGroupPermissions['user']['viewmyprivateinfo'] = true;
+$wgGroupPermissions['user']['read'] = true;
+$wgGroupPermissions['user']['createpage'] = true;
+$wgGroupPermissions['user']['createtalk'] = true;
+$wgGroupPermissions['user']['edit'] = true;
+# Added 2021-10-24
+# Добавлено 2021-10-24
+$wgGroupPermissions['user']['upload'] = false;
+
+# Group: autoconfirmed
+# Группа: автоподтверждённый
+# Added 2021-10-24 
+# Добавлено 2021-10-24
+$wgGroupPermissions['autoconfirmed']['upload'] = true;
+
+$wgGroupPermissions['*']['ajaxpoll-view-results'] = true;
+$wgGroupPermissions['*']['ajaxpoll-vote'] = true;
+# Added 2021-08-17
+# Добавлено 2021-08-17
+$wgGroupPermissions['*']['abusefilter-log'] = false;
+
+# Legacy group: staff (clown)
+# Группа-реликт: стаффер (шут)
+$wgGroupPermissions['staff']['unblockself'] = true;
+
+# Auto-confirmation requirements (both should be met)
+# Требования для автоподтверждения (должны выполняться оба)
+$wgAutoConfirmAge = 24 * 60 * 60;
+$wgAutoConfirmCount = 4;  
+
+$wgAllowDisplayTitle = true;
+$wgRestrictDisplayTitle = false;
+
+# Login attempt rate limit
+# Ограничение на число попыток входа
+$wgPasswordAttemptThrottle = [
+	[ 'count' => 6, 'seconds' => 600, 'allIPs' => true ],
+];
+
+## Footer banners
+## Баннеры внизу
+# Disabling 'Powered by MediaWiki'
+# Откл. 'Powered by MediaWiki'
+unset( $wgFooterIcons['poweredby'] );
+# Uncyclomedia banner
+# Установка баннера Uncyclomedia
+$wgFooterIcons['poweredby']['myicon'] = [
+	'src' => 'https://{{ website_hostname }}/w/images/0/0d/Uncyclomedia.png',
+	'url' => 'https://meta.uncyclomedia.org/'
+];
+
+$wgShowExceptionDetails = true;
+$wgShowDBErrorBacktrace = false;
+$wgShowSQLErrors = false;

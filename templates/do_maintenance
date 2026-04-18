@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PHP="{{ php_executable }}"
+WWW_DIR="{{ target_directory }}/.."
+MAINTENANCE_DIR="$WWW_DIR/w/maintenance"
+
+"$PHP" "$MAINTENANCE_DIR/run.php" "runJobs.php"
+"$PHP" "$MAINTENANCE_DIR/run.php" "namespaceDupes.php"
+"$PHP" "$MAINTENANCE_DIR/run.php" "initSiteStats.php" --update
+"$PHP" "$MAINTENANCE_DIR/run.php" "updateArticleCount.php" --update
+"$PHP" "$MAINTENANCE_DIR/run.php" "generateSitemap.php" --fspath="$WWW_DIR/sitemap/" --identifier="{{ website_id }}" --urlpath=sitemap

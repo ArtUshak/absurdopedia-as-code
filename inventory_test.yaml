@@ -1,0 +1,23 @@
+wiki:
+  hosts:
+    test:
+      ansible_host: artushak.ru
+      home_directory: "/srv/http/wiki_website"
+      image_directory: "{{ home_directory }}/mediawiki-images"
+      target_directory: "{{ home_directory }}/wiki/w"
+      secret_directory: "{{ home_directory }}/mediawiki-misc/secret"
+      website_id: "absurdopedia_test"
+      website_name: "Тестовая Абсурдопедия"
+      website_hostname: "wiki.peresvet.artushak.ru"
+      wiki_admin_user: "Admin"
+      wiki_admin_password_file: "{{ secret_directory }}/AdminPassword"
+      password_sender_email: "{{ website_id }}@artushak.ru"
+      admin_email: "webmaster@artushak.ru"
+      database_name: "wiki"
+      database_user: "wiki"
+      database_password_file: "{{ secret_directory }}/MySQLPassword"
+      icon_image_url: "/w/images/d/df/LogoTest.svg"
+      icon_image_url_1x: "/w/images/d/df/LogoTest.svg"
+      nginx_symlink: "/etc/nginx/sites-locations/wiki.peresvet.artushak.ru/wiki"
+      nginx_main: "/etc/nginx/sites-locations/wiki.peresvet.artushak.ru/wiki.main"
+      nginx_maintenance: "/etc/nginx/sites-locations/wiki.peresvet.artushak.ru/wiki.maintenance"

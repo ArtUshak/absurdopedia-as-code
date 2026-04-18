@@ -1,0 +1,71 @@
+---
+async_timeout: 600
+php_executable: "php8.4"
+mediawiki_core_url: "https://releases.wikimedia.org/mediawiki/1.43/mediawiki-core-1.43.8.tar.gz"
+core_version: "mediawiki-1.43.8"
+mediawiki_branch: "REL1_43"
+mediawiki_extensions:
+  - AbuseFilter
+  - AddHTMLMetaAndTitle
+  - AJAXPoll
+  - AntiSpoof
+  - Arrays
+  - CategoryTree
+  - CharInsert
+  - CheckUser
+  - Cite
+  - CiteThisPage
+  - CodeEditor
+  - CodeMirror
+  - ConfirmEdit
+  - CreatePageUw
+  - CSS
+  - Description2
+  - Editcount
+  - Gadgets
+  - googleAnalytics
+  - Graph
+  - HAWelcome
+  - ImageMap
+  - InputBox
+  - Interwiki
+  - LogoFunctions
+  - Loops
+  - MagicNoCache
+  - MassEditRegex
+  - Math
+  - MobileFrontend
+  - Nuke
+  - ParserFunctions
+  - Poem
+  - Poll
+  - RandomSelection
+  - Renameuser
+  - RSS
+  - SpamBlacklist
+  - TemplateStyles
+  - TorBlock
+  - Variables
+  - WikiEditor
+  - YouTube
+  - TimedMediaHandler
+  - SyntaxHighlight_GeSHi
+  - NativeSvgHandler
+  - UrlGetParameters
+  - SlimboxThumbs
+mediawiki_extra_extensions:
+  - name: DynamicPageList4
+    url: https://github.com/Universal-Omega/DynamicPageList4.git
+    composer: true
+  - name: GTag
+    url: https://github.com/SkizNet/mediawiki-GTag.git
+    branch: master
+    composer: false
+  - name: EditCountNeue
+    url: https://github.com/AlPha5130/mediawiki-extensions-EditCountNeue.git
+    composer: true
+mediawiki_skins:
+  - MonoBook
+  - Vector
+  - Timeless
+  - MinervaNeue

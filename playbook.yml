@@ -1,0 +1,261 @@
+---
+- name: Install MediaWiki
+  hosts: wiki
+  remote_user: wiki
+  vars_files:
+    - vars_common.yml
+
+  tasks:
+    - name: Create MediaWiki directory
+      ansible.builtin.file:
+        path: "{{ home_directory }}/mediawiki"
+        state: directory
+      tags: install
+    - name: Create MediaWiki core directory
+      ansible.builtin.file:
+        path: "{{ home_directory }}/mediawiki/core"
+        state: directory
+      tags: install
+    - name: Create MediaWiki extensions directory
+      ansible.builtin.file:
+        path: "{{ home_directory }}/mediawiki/extensions"
+        state: directory
+      tags: install
+    - name: Create MediaWiki skins directory
+      ansible.builtin.file:
+        path: "{{ home_directory }}/mediawiki/skins"
+        state: directory
+      tags: install
+    - name: Download MediaWiki tarball
+      ansible.builtin.get_url:
+        url: "{{ mediawiki_core_url }}"
+        dest: "{{ home_directory }}/mediawiki/core.tar.gz"
+      tags: install
+    - name: Unpack MediaWiki tarball
+      ansible.builtin.unarchive:
+        src: "{{ home_directory }}/mediawiki/core.tar.gz"
+        dest: "{{ home_directory }}/mediawiki/core"
+        remote_src: yes
+      tags: install
+    - name: Update MediaWiki extensions
+      ansible.builtin.git:
+        repo: "https://gerrit.wikimedia.org/r/mediawiki/extensions/{{ item }}"
+        dest: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
+        version: "{{ mediawiki_branch }}"
+        depth: 1
+      async: "{{ async_timeout }}"
+      poll: 0
+      loop: "{{ mediawiki_extensions }}"
+      register: extensions_update
+      tags: install
+    - name: Update MediaWiki extra extensions
+      ansible.builtin.git:
+        repo: "{{ item.url }}"
+        dest: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
+        version: "{{ item.branch|default(mediawiki_branch) }}"
+        depth: 1
+      async: "{{ async_timeout }}"
+      poll: 0
+      loop: "{{ mediawiki_extra_extensions }}"
+      register: extra_extensions_update
+      tags: install
+    - name: Update MediaWiki skins
+      ansible.builtin.git:
+        repo: "https://gerrit.wikimedia.org/r/mediawiki/skins/{{ item }}"
+        dest: "{{ home_directory }}/mediawiki/skins/{{ item }}"
+        version: "{{ mediawiki_branch }}"
+        depth: 1
+      async: "{{ async_timeout }}"
+      poll: 0
+      loop: "{{ mediawiki_skins }}"
+      register: skins_update
+      tags: install
+    - name: Wait for extensions update
+      ansible.builtin.import_tasks: wait_for_task.yml
+      vars:
+        async_task: "{{ extensions_update }}"
+      tags: install
+    - name: Wait for extra extensions update
+      ansible.builtin.import_tasks: wait_for_task.yml
+      vars:
+        async_task: "{{ extra_extensions_update }}"
+      tags: install
+    - name: Wait for skins update
+      ansible.builtin.import_tasks: wait_for_task.yml
+      vars:
+        async_task: "{{ skins_update }}"
+      tags: install
+
+    - name: Update Composer dependencies for MediaWiki
+      community.general.composer:
+        command: update
+        working_dir: "{{ home_directory }}/mediawiki/core/{{ core_version }}"
+      tags: install
+    - name: Update Composer dependencies for MediaWiki extensions
+      community.general.composer:
+        command: update
+        working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
+      loop: "{{ mediawiki_extensions }}"
+      tags: install
+    - name: Update Composer dependencies for MediaWiki extra extensions
+      community.general.composer:
+        command: update
+        working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
+      when: item.composer
+      loop: "{{ mediawiki_extra_extensions }}"
+      tags: install
+    - name: Update Composer dependencies for MediaWiki skins
+      community.general.composer:
+        command: update
+        working_dir: "{{ home_directory }}/mediawiki/skins/{{ item }}"
+      loop: "{{ mediawiki_skins }}"
+      tags: install
+
+    - name: Create images directory
+      ansible.builtin.file:
+        path: "{{ image_directory }}"
+        state: directory
+      tags: always
+    - name: Create temporary images directory
+      ansible.builtin.file:
+        path: "{{ image_directory }}/temp"
+        state: directory
+      tags: always
+
+    - name: Disable website
+      ansible.builtin.file:
+        src: "{{ nginx_maintenance }}"
+        dest: "{{ nginx_symlink }}"
+        state: link
+        force: yes
+      tags: nginx
+    - name: Reload nginx
+      ansible.builtin.command: sudo systemctl reload nginx
+      tags: nginx
+
+    - name: Remove target directory
+      ansible.builtin.file:
+        path: "{{ target_directory }}"
+        state: absent
+      tags: install
+    - name: Copy MediaWiki core to target directory
+      ansible.builtin.copy:
+        src: "{{ home_directory }}/mediawiki/core/{{ core_version }}/"
+        dest: "{{ target_directory }}"
+        remote_src: yes
+      tags: install
+    - name: Copy MediaWiki extensions to target directory
+      ansible.builtin.copy:
+        src: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
+        dest: "{{ target_directory }}/extensions/"
+        remote_src: yes
+      loop: "{{ mediawiki_extensions }}"
+      tags: install
+    - name: Copy MediaWiki extra extensions to target directory
+      ansible.builtin.copy:
+        src: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
+        dest: "{{ target_directory }}/extensions/"
+        remote_src: yes
+      loop: "{{ mediawiki_extra_extensions }}"
+      tags: install
+    - name: Copy MediaWiki skins to target directory
+      ansible.builtin.copy:
+        src: "{{ home_directory }}/mediawiki/skins/{{ item }}"
+        dest: "{{ target_directory }}/skins/"
+        remote_src: yes
+      loop: "{{ mediawiki_skins }}"
+      tags: install
+    - name: Remove images directory
+      ansible.builtin.file:
+        dest: "{{ target_directory }}/images"
+        state: absent
+      tags: install
+    - name: Create symlink to image directory
+      ansible.builtin.file:
+        src: "{{ image_directory }}"
+        dest: "{{ target_directory }}/images"
+        state: link
+        force: yes
+      tags: install
+
+    - name: Check for installation marker file
+      ansible.builtin.stat:
+        path: "{{ home_directory }}/.installation-marker"
+      register: installation_marker
+      tags: install
+    - name: Run install task if needed
+      ansible.builtin.command:
+        argv:
+          - "{{ php_executable }}"
+          - "maintenance/install.php"
+          - "--dbname={{ database_name }}"
+          - "--dbuser={{ database_user }}"
+          - "--dbpassfile={{ database_password_file }}"
+          - "--passfile={{ wiki_admin_password_file }}"
+          - "--server={{ website_hostname }}"
+          - "--scriptpath=/"
+          - "{{ website_name }}"
+          - "{{ wiki_admin_user }}"
+        chdir: "{{ target_directory }}"
+      when: not installation_marker.stat.exists
+      tags: install
+    - name: Create installation marker file
+      ansible.builtin.file:
+        path: "{{ home_directory }}/.installation-marker"
+        state: touch
+      tags: install
+
+    - name: Upload LocalSettings.php
+      ansible.builtin.template:
+        src: templates/LocalSettings.php.j2
+        dest: "{{ target_directory }}/LocalSettings.php"
+        mode: "664"
+      tags: always
+    - name: Upload do_maintenance
+      ansible.builtin.template:
+        src: templates/do_maintenance
+        dest: "{{ target_directory }}/do_maintenance"
+        mode: "764"
+      tags: always
+
+    - name: Run jobs
+      ansible.builtin.command:
+        argv:
+          - "{{ php_executable }}"
+          - "maintenance/run.php"
+          - "runJobs.php"
+        chdir: "{{ target_directory }}"
+      tags: always
+    - name: Run update task
+      ansible.builtin.command:
+        argv:
+          - "{{ php_executable }}"
+          - "maintenance/run.php"
+          - "update.php"
+        chdir: "{{ target_directory }}"
+      tags: always
+    - name: Run rebuildLocalisationCache task
+      ansible.builtin.command:
+        argv:
+          - "{{ php_executable }}"
+          - "maintenance/run.php"
+          - "rebuildLocalisationCache.php"
+        chdir: "{{ target_directory }}"
+      tags: always
+    - name: Run maintenance tasks
+      ansible.builtin.command:
+        argv:
+          - "./do_maintenance"
+        chdir: "{{ target_directory }}"
+      tags: always
+
+    - name: Enable website
+      ansible.builtin.file:
+        src: "{{ nginx_main }}"
+        dest: "{{ nginx_symlink }}"
+        state: link
+        force: yes
+      tags: nginx
+    - name: Reload nginx
+      ansible.builtin.command: sudo systemctl reload nginx
+      tags: nginx
