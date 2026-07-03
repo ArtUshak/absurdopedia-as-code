@@ -1,0 +1,9 @@
+<?php
+
+## Disabling editing during maintenance
+## Откл. редактирования на время техработ
+{% if is_stand_in %}
+$wgReadOnlyFile = "{{ home_directory }}/lock-db-always";
+{% else %}
+$wgReadOnlyFile = "{{ home_directory }}/lock-db";
+{% endif %}

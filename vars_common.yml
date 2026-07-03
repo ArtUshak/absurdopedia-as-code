@@ -1,9 +1,15 @@
 ---
 async_timeout: 600
 php_executable: "php8.4"
-mediawiki_core_url: "https://releases.wikimedia.org/mediawiki/1.43/mediawiki-core-1.43.8.tar.gz"
-core_version: "mediawiki-1.43.8"
+mediawiki_core_url: "https://releases.wikimedia.org/mediawiki/1.43/mediawiki-core-1.43.9.tar.gz"
+core_version: "mediawiki-1.43.9"
 mediawiki_branch: "REL1_43"
+# git_extension_url_prefix: https://gerrit.wikimedia.org/r/mediawiki/extensions/
+git_extension_url_prefix: https://github.com/wikimedia/mediawiki-extensions-
+# git_skin_url_prefix: https://gerrit.wikimedia.org/r/mediawiki/skins/
+git_skin_url_prefix: https://github.com/wikimedia/mediawiki-skins-
+# git_url_suffix: ''
+git_url_suffix: .git
 mediawiki_extensions:
   - AbuseFilter
   - AddHTMLMetaAndTitle
@@ -21,10 +27,7 @@ mediawiki_extensions:
   - CreatePageUw
   - CSS
   - Description2
-  - Editcount
   - Gadgets
-  - googleAnalytics
-  - Graph
   - HAWelcome
   - ImageMap
   - InputBox
@@ -40,7 +43,6 @@ mediawiki_extensions:
   - Poem
   - Poll
   - RandomSelection
-  - Renameuser
   - RSS
   - SpamBlacklist
   - TemplateStyles
@@ -69,3 +71,5 @@ mediawiki_skins:
   - Vector
   - Timeless
   - MinervaNeue
+git_retries: 3
+git_retry_delay: 10

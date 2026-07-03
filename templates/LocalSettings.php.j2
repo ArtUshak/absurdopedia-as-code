@@ -53,7 +53,8 @@ $wgEmailAuthentication = true;
 
 ## Database settings (splitted to another file)
 ## Настройки базы данных (вынесены в другой файл)
-require_once "$IP/../../mediawiki-misc/secret/LocalSettingsSecret.php";
+require_once "{{ secret_directory }}/LocalSettingsSecret.php";
+require_once "$IP/LocalSettingsExtra.php";
 
 # MySQL specific settings
 $wgDBprefix = '';
@@ -138,10 +139,6 @@ $wgAllowUserCss = true;
 #error_reporting( -1 );
 #ini_set( 'display_errors', 1 );
 
-## Disabling editing during maintenance
-## Откл. редактирования на время техработ
-#$wgReadOnly = 'Ведутся технические работы';
-
 ## File formats
 ## Форматы файлов
 $wgFileExtensions = array(
@@ -225,7 +222,6 @@ wfLoadExtension( 'MagicNoCache' );
 wfLoadExtension( 'Nuke' );
 wfLoadExtension( 'Poem' );
 wfLoadExtension( 'RandomSelection' );
-wfLoadExtension( 'Renameuser' );
 wfLoadExtension( 'RSS' );
 wfLoadExtension( 'SpamBlacklist' );
 wfLoadExtension( 'Variables' );
@@ -426,7 +422,6 @@ $wgGroupPermissions['baron']['deletedhistory'] = true;
 $wgGroupPermissions['baron']['deletedtext'] = true;
 $wgGroupPermissions['baron']['delete'] = true;
 $wgGroupPermissions['baron']['bigdelete'] = true;
-$wgGroupPermissions['baron']['bigdelete'] = true;
 # Added 2021-08-17
 # Добавлено 2021-08-17
 $wgGroupPermissions['baron']['abusefilter-log'] = true;
@@ -473,7 +468,7 @@ $wgGroupPermissions['user']['upload'] = false;
 
 # Group: autoconfirmed
 # Группа: автоподтверждённый
-# Added 2021-10-24 
+# Added 2021-10-24
 # Добавлено 2021-10-24
 $wgGroupPermissions['autoconfirmed']['upload'] = true;
 
@@ -490,7 +485,7 @@ $wgGroupPermissions['staff']['unblockself'] = true;
 # Auto-confirmation requirements (both should be met)
 # Требования для автоподтверждения (должны выполняться оба)
 $wgAutoConfirmAge = 24 * 60 * 60;
-$wgAutoConfirmCount = 4;  
+$wgAutoConfirmCount = 4;
 
 $wgAllowDisplayTitle = true;
 $wgRestrictDisplayTitle = false;
@@ -512,6 +507,10 @@ $wgFooterIcons['poweredby']['myicon'] = [
 	'src' => 'https://{{ website_hostname }}/w/images/0/0d/Uncyclomedia.png',
 	'url' => 'https://meta.uncyclomedia.org/'
 ];
+
+## Favicon
+## Фавиконка
+$wgFavicon = "/favicon.svg";
 
 $wgShowExceptionDetails = true;
 $wgShowDBErrorBacktrace = false;

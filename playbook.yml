@@ -10,128 +10,194 @@
       ansible.builtin.file:
         path: "{{ home_directory }}/mediawiki"
         state: directory
-      tags: install
+      tags: download
     - name: Create MediaWiki core directory
       ansible.builtin.file:
         path: "{{ home_directory }}/mediawiki/core"
         state: directory
-      tags: install
+      tags: download
     - name: Create MediaWiki extensions directory
       ansible.builtin.file:
         path: "{{ home_directory }}/mediawiki/extensions"
         state: directory
-      tags: install
+      tags: download
     - name: Create MediaWiki skins directory
       ansible.builtin.file:
         path: "{{ home_directory }}/mediawiki/skins"
         state: directory
-      tags: install
+      tags: download
     - name: Download MediaWiki tarball
       ansible.builtin.get_url:
         url: "{{ mediawiki_core_url }}"
         dest: "{{ home_directory }}/mediawiki/core.tar.gz"
-      tags: install
+      tags: download
     - name: Unpack MediaWiki tarball
       ansible.builtin.unarchive:
         src: "{{ home_directory }}/mediawiki/core.tar.gz"
         dest: "{{ home_directory }}/mediawiki/core"
         remote_src: yes
-      tags: install
+      tags: download
     - name: Update MediaWiki extensions
       ansible.builtin.git:
-        repo: "https://gerrit.wikimedia.org/r/mediawiki/extensions/{{ item }}"
+        repo: "{{ git_extension_url_prefix }}{{ item }}{{ git_url_suffix }}"
         dest: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
         version: "{{ mediawiki_branch }}"
         depth: 1
-      async: "{{ async_timeout }}"
-      poll: 0
       loop: "{{ mediawiki_extensions }}"
+      retries: "{{ git_retries }}"
+      delay: "{{ git_retry_delay }}"
       register: extensions_update
-      tags: install
+      tags: download
     - name: Update MediaWiki extra extensions
       ansible.builtin.git:
         repo: "{{ item.url }}"
         dest: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
         version: "{{ item.branch|default(mediawiki_branch) }}"
         depth: 1
-      async: "{{ async_timeout }}"
-      poll: 0
       loop: "{{ mediawiki_extra_extensions }}"
+      retries: "{{ git_retries }}"
+      delay: "{{ git_retry_delay }}"
       register: extra_extensions_update
-      tags: install
+      tags: download
     - name: Update MediaWiki skins
       ansible.builtin.git:
-        repo: "https://gerrit.wikimedia.org/r/mediawiki/skins/{{ item }}"
-        dest: "{{ home_directory }}/mediawiki/skins/{{ item }}"
+        repo: "{{ git_skin_url_prefix }}{{ item }}{{ git_url_suffix }}"
+        dest: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
         version: "{{ mediawiki_branch }}"
         depth: 1
-      async: "{{ async_timeout }}"
-      poll: 0
       loop: "{{ mediawiki_skins }}"
+      retries: "{{ git_retries }}"
+      delay: "{{ git_retry_delay }}"
       register: skins_update
-      tags: install
-    - name: Wait for extensions update
-      ansible.builtin.import_tasks: wait_for_task.yml
-      vars:
-        async_task: "{{ extensions_update }}"
-      tags: install
-    - name: Wait for extra extensions update
-      ansible.builtin.import_tasks: wait_for_task.yml
-      vars:
-        async_task: "{{ extra_extensions_update }}"
-      tags: install
-    - name: Wait for skins update
-      ansible.builtin.import_tasks: wait_for_task.yml
-      vars:
-        async_task: "{{ skins_update }}"
-      tags: install
+      tags: download
 
     - name: Update Composer dependencies for MediaWiki
       community.general.composer:
         command: update
         working_dir: "{{ home_directory }}/mediawiki/core/{{ core_version }}"
-      tags: install
+      tags: download
     - name: Update Composer dependencies for MediaWiki extensions
       community.general.composer:
         command: update
         working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
       loop: "{{ mediawiki_extensions }}"
-      tags: install
+      tags: download
     - name: Update Composer dependencies for MediaWiki extra extensions
       community.general.composer:
         command: update
         working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
       when: item.composer
       loop: "{{ mediawiki_extra_extensions }}"
-      tags: install
+      tags: download
     - name: Update Composer dependencies for MediaWiki skins
       community.general.composer:
         command: update
         working_dir: "{{ home_directory }}/mediawiki/skins/{{ item }}"
       loop: "{{ mediawiki_skins }}"
-      tags: install
+      tags: download
 
     - name: Create images directory
       ansible.builtin.file:
         path: "{{ image_directory }}"
         state: directory
-      tags: always
+      tags: install
     - name: Create temporary images directory
       ansible.builtin.file:
         path: "{{ image_directory }}/temp"
         state: directory
-      tags: always
+      tags: install
 
-    - name: Disable website
+    - name: Check for 'unfinished upgrade in progress' marker file
+      ansible.builtin.stat:
+        path: "{{ home_directory }}/.in-progress-marker"
+      register: in_progress_marker
+      tags: install
+
+    - name: Check for installation marker file
+      ansible.builtin.stat:
+        path: "{{ home_directory }}/.installation-marker"
+      register: installation_marker
+      tags: install
+
+    - name: Remove stand-in directory
       ansible.builtin.file:
-        src: "{{ nginx_maintenance }}"
-        dest: "{{ nginx_symlink }}"
+        dest: "{{ target_directory_stand_in }}"
+        state: absent
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Copy main directory to stand-in
+      ansible.builtin.copy:
+        src: "{{ target_directory }}/"
+        dest: "{{ target_directory_stand_in }}"
+        remote_src: yes
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Upload DB lock file for stand-in
+      ansible.builtin.copy:
+        src: "files/lock_db"
+        dest: "{{ home_directory }}/lock-db-always"
+      tags: install
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+    - name: Upload LocalSettingsExtra.php for stand-in
+      ansible.builtin.template:
+        src: templates/LocalSettingsExtra.php.j2
+        dest: "{{ target_directory_stand_in }}/LocalSettingsExtra.php"
+        mode: "664"
+      vars:
+        is_stand_in: true
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+    - name: Create DB lock file for main installation
+      ansible.builtin.copy:
+        src: "files/lock_db"
+        dest: "{{ home_directory }}/lock-db"
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Dump DB
+      ansible.mysql.mysql_db:
+        state: dump
+        target: "{{ home_directory }}/dump.xz"
+        name: "{{ database_name }}"
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Drop stand-in DB
+      ansible.mysql.mysql_db:
+        state: absent
+        name: "{{ database_name_stand_in }}"
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Create stand-in DB
+      ansible.mysql.mysql_db:
+        state: present
+        name: "{{ database_name_stand_in }}"
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+    - name: Import dump to stand-in DB
+      ansible.mysql.mysql_db:
+        state: import
+        target: "{{ home_directory }}/dump.xz"
+        name: "{{ database_name_stand_in }}"
+      when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
+
+    - name: Create 'unfinished upgrade in progress' marker file
+      ansible.builtin.file:
+        path: "{{ home_directory }}/.in-progress-marker"
+        state: touch
+      tags: install
+
+    - name: Switch symlink to stand-in
+      ansible.builtin.file:
+        src: "{{ target_directory_stand_in }}"
+        dest: "{{ switch_symlink }}"
         state: link
         force: yes
-      tags: nginx
-    - name: Reload nginx
-      ansible.builtin.command: sudo systemctl reload nginx
-      tags: nginx
+      tags: install
+
+    - name: Remove DB lock file for main installation
+      ansible.builtin.file:
+        path: "{{ home_directory }}/lock-db"
+        state: absent
+      tags: install
 
     - name: Remove target directory
       ansible.builtin.file:
@@ -178,11 +244,6 @@
         force: yes
       tags: install
 
-    - name: Check for installation marker file
-      ansible.builtin.stat:
-        path: "{{ home_directory }}/.installation-marker"
-      register: installation_marker
-      tags: install
     - name: Run install task if needed
       ansible.builtin.command:
         argv:
@@ -205,18 +266,26 @@
         state: touch
       tags: install
 
+    - name: Upload LocalSettingsExtra.php for main installation
+      ansible.builtin.template:
+        src: templates/LocalSettingsExtra.php.j2
+        dest: "{{ target_directory }}/LocalSettingsExtra.php"
+        mode: "664"
+      vars:
+        is_stand_in: false
+      tags: install
     - name: Upload LocalSettings.php
       ansible.builtin.template:
         src: templates/LocalSettings.php.j2
         dest: "{{ target_directory }}/LocalSettings.php"
         mode: "664"
-      tags: always
+      tags: install
     - name: Upload do_maintenance
       ansible.builtin.template:
         src: templates/do_maintenance
         dest: "{{ target_directory }}/do_maintenance"
         mode: "764"
-      tags: always
+      tags: install
 
     - name: Run jobs
       ansible.builtin.command:
@@ -225,7 +294,7 @@
           - "maintenance/run.php"
           - "runJobs.php"
         chdir: "{{ target_directory }}"
-      tags: always
+      tags: install
     - name: Run update task
       ansible.builtin.command:
         argv:
@@ -233,7 +302,7 @@
           - "maintenance/run.php"
           - "update.php"
         chdir: "{{ target_directory }}"
-      tags: always
+      tags: install
     - name: Run rebuildLocalisationCache task
       ansible.builtin.command:
         argv:
@@ -241,21 +310,24 @@
           - "maintenance/run.php"
           - "rebuildLocalisationCache.php"
         chdir: "{{ target_directory }}"
-      tags: always
+      tags: install
     - name: Run maintenance tasks
       ansible.builtin.command:
         argv:
           - "./do_maintenance"
         chdir: "{{ target_directory }}"
-      tags: always
+      tags: install
 
-    - name: Enable website
+    - name: Switch symlink back to main installation
       ansible.builtin.file:
-        src: "{{ nginx_main }}"
-        dest: "{{ nginx_symlink }}"
+        src: "{{ target_directory }}"
+        dest: "{{ switch_symlink }}"
         state: link
         force: yes
-      tags: nginx
-    - name: Reload nginx
-      ansible.builtin.command: sudo systemctl reload nginx
-      tags: nginx
+      tags: install
+
+    - name: Remove 'unfinished upgrade in progress' marker file
+      ansible.builtin.file:
+        dest: "{{ home_directory }}/.in-progress-marker"
+        state: absent
+      tags: install
