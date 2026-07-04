@@ -78,7 +78,7 @@ $wgSessionCacheType = CACHE_DB;
 $wgEnableUploads = true;
 $wgGenerateThumbnailOnParse = true;
 $wgUseImageMagick = true;
-$wgImageMagickConvertCommand = '/usr/bin/convert-im7';
+$wgImageMagickConvertCommand = '{{ convert_tool_path }}';
 $wgMaxUploadSize = 1024 * 1024 * 10;
 $wgMaxShellMemory = 1024 * 1024;
 
@@ -142,8 +142,9 @@ $wgAllowUserCss = true;
 ## File formats
 ## Форматы файлов
 $wgFileExtensions = array(
-	'png', 'gif', 'jpg', 'jpeg',
-	'svg', 'pdf', 'ogg', 'ogv'
+	'png', 'gif', 'jpg', 'jpeg', 'webp',
+	'svg', 'pdf',
+	'ogg', 'ogv'
 );
 
 ## Namespaces
@@ -324,7 +325,6 @@ $wgGroupPermissions['bureaucrat']['interwiki'] = true;
 $wgGroupPermissions['bureaucrat']['unblockself'] = true;
 $wgGroupPermissions['bureaucrat']['nuke'] = true;
 $wgGroupPermissions['bureaucrat']['editsitejson'] = true;
-$wgGroupPermissions['bureaucrat']['edituserjson'] = true;
 $wgGroupPermissions['bureaucrat']['block'] = true;
 $wgGroupPermissions['bureaucrat']['blockemail'] = true;
 $wgGroupPermissions['bureaucrat']['suppressredirect'] = true;
@@ -344,9 +344,6 @@ $wgGroupPermissions['sysop']['nuke'] = false;
 $wgGroupPermissions['sysop']['unblockself'] = true;
 $wgGroupPermissions['sysop']['abusefilter-log-detail'] = true;
 $wgGroupPermissions['sysop']['abusefilter-log'] = true;
-# Added 2021-08-17
-# Добавлено 2021-08-17
-$wgGroupPermissions['bureaucrat']['abusefilter-log'] = true;
 
 $wgRemoveGroups['sysop'] = array( 'knight', 'baron' );
 $wgAddGroups['sysop'] = array( 'knight', 'baron' );
@@ -448,7 +445,6 @@ $wgGroupPermissions['user']['movefile'] = false;
 $wgGroupPermissions['user']['move-categorypages'] = false;
 $wgGroupPermissions['user']['move-rootuserpages'] = false;
 $wgGroupPermissions['user']['reupload'] = false;
-$wgGroupPermissions['user']['move'] = false;
 $wgGroupPermissions['user']['skipcaptcha'] = true;
 $wgGroupPermissions['user']['ipblock-exempt'] = true;
 $wgGroupPermissions['user']['noratelimit'] = true;

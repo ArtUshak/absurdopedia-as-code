@@ -21,3 +21,4 @@ wiki:
       database_password_file: "{{ secret_directory }}/MySQLPassword"
       icon_image_url: "/w/images/5/5a/Uncyclopedia_logo_notext_saturated.svg"
       icon_image_url_1x: "/w/images/9/98/Uncyclopedia_logo_saturated_export.svg"
+      convert_tool_path: "/usr/bin/convert-im7"
