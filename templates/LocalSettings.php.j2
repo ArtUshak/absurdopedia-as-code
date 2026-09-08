@@ -144,7 +144,8 @@ $wgAllowUserCss = true;
 $wgFileExtensions = array(
 	'png', 'gif', 'jpg', 'jpeg', 'webp',
 	'svg', 'pdf',
-	'ogg', 'ogv'
+	'ogg', 'ogv',
+	'webm', 'mkv'
 );
 
 ## Namespaces
@@ -259,7 +260,7 @@ $wgGTagTrackSensitivePages = false;
 
 wfLoadExtension( 'TimedMediaHandler' );
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
-$wgTmhWebPlayer = 'mwembed';
+$wgTmhEnableMp4Uploads = true;
 
 wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 
