@@ -117,7 +117,14 @@
       ansible.builtin.stat:
         path: "{{ home_directory }}/.installation-marker"
       register: installation_marker
-      tags: install
+      tags:
+        - install
+        - update_settings
+    - name: Fail if installation marker file is missing and mode is update_settings
+      ansible.builtin.fail:
+        msg: 'Installation marker file is missing'
+      when: not installation_marker.stat.exists
+      tags: update_settings
 
     - name: Remove stand-in directory
       ansible.builtin.file:
@@ -146,6 +153,7 @@
       vars:
         is_stand_in: true
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
+      tags: install
     - name: Create DB lock file for main installation
       ansible.builtin.copy:
         src: "files/lock_db"
@@ -279,13 +287,17 @@
         src: templates/LocalSettings.php.j2
         dest: "{{ target_directory }}/LocalSettings.php"
         mode: "664"
-      tags: install
+      tags:
+        - install
+        - update_settings
     - name: Upload do_maintenance
       ansible.builtin.template:
         src: templates/do_maintenance
         dest: "{{ target_directory }}/do_maintenance"
         mode: "764"
-      tags: install
+      tags:
+        - install
+        - update_settings
 
     - name: Run jobs
       ansible.builtin.command:
@@ -316,7 +328,9 @@
         argv:
           - "./do_maintenance"
         chdir: "{{ target_directory }}"
-      tags: install
+      tags:
+        - install
+        - update_settings
 
     - name: Switch symlink back to main installation
       ansible.builtin.file:
