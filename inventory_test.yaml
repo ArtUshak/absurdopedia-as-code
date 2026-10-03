@@ -22,3 +22,4 @@ wiki:
       icon_image_url: "/w/images/d/df/LogoTest.svg"
       icon_image_url_1x: "/w/images/d/df/LogoTest.svg"
       convert_tool_path: "/usr/bin/convert-im6"
+      max_upload_size_mb: 20

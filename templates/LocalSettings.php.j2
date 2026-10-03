@@ -79,7 +79,7 @@ $wgEnableUploads = true;
 $wgGenerateThumbnailOnParse = true;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = '{{ convert_tool_path }}';
-$wgMaxUploadSize = 1024 * 1024 * 10;
+$wgMaxUploadSize = 1024 * 1024 * {{ max_upload_size_mb }};
 $wgMaxShellMemory = 1024 * 1024;
 
 #$wgSVGConverter = 'ImageMagick';
