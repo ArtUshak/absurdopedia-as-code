@@ -1,25 +1,26 @@
+---
 wiki:
   hosts:
     prod:
       ansible_host: absurdopedia.wiki
-      home_directory: "/srv/http/wiki"
-      image_directory: "{{ home_directory }}/mediawiki-images"
-      target_directory: "{{ home_directory }}/wiki/w"
-      secret_directory: "{{ home_directory }}/mediawiki-misc/secret"
-      target_directory_stand_in: "{{ home_directory }}/wiki/w_stand_in"
-      switch_symlink: "{{ home_directory }}/current_wiki/w"
-      website_id: "absurdopedia"
-      website_name: "Абсурдопедия"
-      website_hostname: "absurdopedia.wiki"
-      wiki_admin_user: "Admin"
-      wiki_admin_password_file: "{{ secret_directory }}/AdminPassword"
-      password_sender_email: "{{ website_id }}@absurdopedia.wiki"
-      admin_email: "webmaster@absurdopedia.wiki"
-      database_name: "absurdopedia_prod"
-      database_name_stand_in: "absurdopedia_stand_in"
-      database_user: "absurdopedia_prod"
-      database_password_file: "{{ secret_directory }}/MySQLPassword"
-      icon_image_url: "/w/images/5/5a/Uncyclopedia_logo_notext_saturated.svg"
-      icon_image_url_1x: "/w/images/9/98/Uncyclopedia_logo_saturated_export.svg"
-      convert_tool_path: "/usr/bin/convert-im7"
+      home_directory: /srv/http/wiki
+      image_directory: '{{ home_directory }}/mediawiki-images'
+      target_directory: '{{ home_directory }}/wiki/w'
+      secret_directory: '{{ home_directory }}/mediawiki-misc/secret'
+      target_directory_stand_in: '{{ home_directory }}/wiki/w_stand_in'
+      switch_symlink: '{{ home_directory }}/current_wiki/w'
+      website_id: absurdopedia
+      website_name: Абсурдопедия
+      website_hostname: absurdopedia.wiki
+      wiki_admin_user: Admin
+      wiki_admin_password_file: '{{ secret_directory }}/AdminPassword'
+      password_sender_email: '{{ website_id }}@absurdopedia.wiki'
+      admin_email: webmaster@absurdopedia.wiki
+      database_name: absurdopedia_prod
+      database_name_stand_in: absurdopedia_stand_in
+      database_user: absurdopedia_prod
+      database_password_file: '{{ secret_directory }}/MySQLPassword'
+      icon_image_url: /w/images/5/5a/Uncyclopedia_logo_notext_saturated.svg
+      icon_image_url_1x: /w/images/9/98/Uncyclopedia_logo_saturated_export.svg
+      convert_tool_path: /usr/bin/convert-im7
       max_upload_size_mb: 8

@@ -2,346 +2,321 @@
 - name: Install MediaWiki
   hosts: wiki
   remote_user: wiki
-  vars_files:
-    - vars_common.yml
-
+  vars_files: [vars_common.yaml]
   tasks:
     - name: Create MediaWiki directory
       ansible.builtin.file:
-        path: "{{ home_directory }}/mediawiki"
+        path: '{{ home_directory }}/mediawiki'
         state: directory
       tags: download
     - name: Create MediaWiki core directory
       ansible.builtin.file:
-        path: "{{ home_directory }}/mediawiki/core"
+        path: '{{ home_directory }}/mediawiki/core'
         state: directory
       tags: download
     - name: Create MediaWiki extensions directory
       ansible.builtin.file:
-        path: "{{ home_directory }}/mediawiki/extensions"
+        path: '{{ home_directory }}/mediawiki/extensions'
         state: directory
       tags: download
     - name: Create MediaWiki skins directory
       ansible.builtin.file:
-        path: "{{ home_directory }}/mediawiki/skins"
+        path: '{{ home_directory }}/mediawiki/skins'
         state: directory
       tags: download
     - name: Download MediaWiki tarball
-      ansible.builtin.get_url:
-        url: "{{ mediawiki_core_url }}"
-        dest: "{{ home_directory }}/mediawiki/core.tar.gz"
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/wget
+          - --no-verbose
+          - --timestamping
+          - --continue
+          - '{{ mediawiki_core_url | quote }}'
+          - --output-document
+          - '{{ home_directory }}/mediawiki/{{ core_version}}.tar.gz'
       tags: download
     - name: Unpack MediaWiki tarball
       ansible.builtin.unarchive:
-        src: "{{ home_directory }}/mediawiki/core.tar.gz"
-        dest: "{{ home_directory }}/mediawiki/core"
-        remote_src: yes
+        src: '{{ home_directory }}/mediawiki/{{ core_version }}.tar.gz'
+        dest: '{{ home_directory }}/mediawiki/core'
+        remote_src: true
       tags: download
     - name: Update MediaWiki extensions
       ansible.builtin.git:
-        repo: "{{ git_extension_url_prefix }}{{ item }}{{ git_url_suffix }}"
-        dest: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
-        version: "{{ mediawiki_branch }}"
+        repo: '{{ git_extension_url_prefix }}{{ item }}{{ git_url_suffix }}'
+        dest: '{{ home_directory }}/mediawiki/extensions/{{ item }}'
+        version: '{{ mediawiki_branch }}'
         depth: 1
-      loop: "{{ mediawiki_extensions }}"
-      retries: "{{ git_retries }}"
-      delay: "{{ git_retry_delay }}"
+      loop: '{{ mediawiki_extensions }}'
+      retries: '{{ git_retries }}'
+      delay: '{{ git_retry_delay }}'
       register: extensions_update
       tags: download
     - name: Update MediaWiki extra extensions
       ansible.builtin.git:
-        repo: "{{ item.url }}"
-        dest: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
-        version: "{{ item.branch|default(mediawiki_branch) }}"
+        repo: '{{ item.url }}'
+        dest: '{{ home_directory }}/mediawiki/extensions/{{ item.name }}'
+        version: '{{ item.branch|default(mediawiki_branch) }}'
         depth: 1
-      loop: "{{ mediawiki_extra_extensions }}"
-      retries: "{{ git_retries }}"
-      delay: "{{ git_retry_delay }}"
+      loop: '{{ mediawiki_extra_extensions }}'
+      retries: '{{ git_retries }}'
+      delay: '{{ git_retry_delay }}'
       register: extra_extensions_update
       tags: download
     - name: Update MediaWiki skins
       ansible.builtin.git:
-        repo: "{{ git_skin_url_prefix }}{{ item }}{{ git_url_suffix }}"
-        dest: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
-        version: "{{ mediawiki_branch }}"
+        repo: '{{ git_skin_url_prefix }}{{ item }}{{ git_url_suffix }}'
+        dest: '{{ home_directory }}/mediawiki/extensions/{{ item }}'
+        version: '{{ mediawiki_branch }}'
         depth: 1
-      loop: "{{ mediawiki_skins }}"
-      retries: "{{ git_retries }}"
-      delay: "{{ git_retry_delay }}"
+      loop: '{{ mediawiki_skins }}'
+      retries: '{{ git_retries }}'
+      delay: '{{ git_retry_delay }}'
       register: skins_update
       tags: download
-
     - name: Update Composer dependencies for MediaWiki
       community.general.composer:
         command: update
-        working_dir: "{{ home_directory }}/mediawiki/core/{{ core_version }}"
+        working_dir: '{{ home_directory }}/mediawiki/core/{{ core_version }}'
       tags: download
     - name: Update Composer dependencies for MediaWiki extensions
       community.general.composer:
         command: update
-        working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
-      loop: "{{ mediawiki_extensions }}"
+        working_dir: '{{ home_directory }}/mediawiki/extensions/{{ item }}'
+      loop: '{{ mediawiki_extensions }}'
       tags: download
     - name: Update Composer dependencies for MediaWiki extra extensions
       community.general.composer:
         command: update
-        working_dir: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
+        working_dir: '{{ home_directory }}/mediawiki/extensions/{{ item.name }}'
       when: item.composer
-      loop: "{{ mediawiki_extra_extensions }}"
+      loop: '{{ mediawiki_extra_extensions }}'
       tags: download
     - name: Update Composer dependencies for MediaWiki skins
       community.general.composer:
         command: update
-        working_dir: "{{ home_directory }}/mediawiki/skins/{{ item }}"
-      loop: "{{ mediawiki_skins }}"
+        working_dir: '{{ home_directory }}/mediawiki/skins/{{ item }}'
+      loop: '{{ mediawiki_skins }}'
       tags: download
-
     - name: Create images directory
       ansible.builtin.file:
-        path: "{{ image_directory }}"
+        path: '{{ image_directory }}'
         state: directory
       tags: install
     - name: Create temporary images directory
       ansible.builtin.file:
-        path: "{{ image_directory }}/temp"
+        path: '{{ image_directory }}/temp'
         state: directory
       tags: install
-
     - name: Check for 'unfinished upgrade in progress' marker file
       ansible.builtin.stat:
-        path: "{{ home_directory }}/.in-progress-marker"
+        path: '{{ home_directory }}/.in-progress-marker'
       register: in_progress_marker
       tags: install
-
     - name: Check for installation marker file
       ansible.builtin.stat:
-        path: "{{ home_directory }}/.installation-marker"
+        path: '{{ home_directory }}/.installation-marker'
       register: installation_marker
-      tags:
-        - install
-        - update_settings
+      tags: [install, update_settings]
     - name: Fail if installation marker file is missing and mode is update_settings
       ansible.builtin.fail:
-        msg: 'Installation marker file is missing'
+        msg: Installation marker file is missing
       when: not installation_marker.stat.exists
       tags: update_settings
-
     - name: Remove stand-in directory
       ansible.builtin.file:
-        dest: "{{ target_directory_stand_in }}"
+        dest: '{{ target_directory_stand_in }}'
         state: absent
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Copy main directory to stand-in
       ansible.builtin.copy:
-        src: "{{ target_directory }}/"
-        dest: "{{ target_directory_stand_in }}"
-        remote_src: yes
+        src: '{{ target_directory }}/'
+        dest: '{{ target_directory_stand_in }}'
+        remote_src: true
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Upload DB lock file for stand-in
       ansible.builtin.copy:
-        src: "files/lock_db"
-        dest: "{{ home_directory }}/lock-db-always"
+        src: files/lock_db
+        dest: '{{ home_directory }}/lock-db-always'
       tags: install
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
     - name: Upload LocalSettingsExtra.php for stand-in
       ansible.builtin.template:
         src: templates/LocalSettingsExtra.php.j2
-        dest: "{{ target_directory_stand_in }}/LocalSettingsExtra.php"
-        mode: "664"
+        dest: '{{ target_directory_stand_in }}/LocalSettingsExtra.php'
+        mode: '664'
       vars:
         is_stand_in: true
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Create DB lock file for main installation
       ansible.builtin.copy:
-        src: "files/lock_db"
-        dest: "{{ home_directory }}/lock-db"
+        src: files/lock_db
+        dest: '{{ home_directory }}/lock-db'
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Dump DB
       ansible.mysql.mysql_db:
         state: dump
-        target: "{{ home_directory }}/dump.xz"
-        name: "{{ database_name }}"
+        target: '{{ home_directory }}/dump.xz'
+        name: '{{ database_name }}'
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Drop stand-in DB
       ansible.mysql.mysql_db:
         state: absent
-        name: "{{ database_name_stand_in }}"
+        name: '{{ database_name_stand_in }}'
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Create stand-in DB
       ansible.mysql.mysql_db:
         state: present
-        name: "{{ database_name_stand_in }}"
+        name: '{{ database_name_stand_in }}'
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
     - name: Import dump to stand-in DB
       ansible.mysql.mysql_db:
         state: import
-        target: "{{ home_directory }}/dump.xz"
-        name: "{{ database_name_stand_in }}"
+        target: '{{ home_directory }}/dump.xz'
+        name: '{{ database_name_stand_in }}'
       when: (installation_marker.stat.exists) and (not in_progress_marker.stat.exists)
       tags: install
-
     - name: Create 'unfinished upgrade in progress' marker file
       ansible.builtin.file:
-        path: "{{ home_directory }}/.in-progress-marker"
+        path: '{{ home_directory }}/.in-progress-marker'
         state: touch
       tags: install
-
     - name: Switch symlink to stand-in
       ansible.builtin.file:
-        src: "{{ target_directory_stand_in }}"
-        dest: "{{ switch_symlink }}"
+        src: '{{ target_directory_stand_in }}'
+        dest: '{{ switch_symlink }}'
         state: link
-        force: yes
+        force: true
       tags: install
-
     - name: Remove DB lock file for main installation
       ansible.builtin.file:
-        path: "{{ home_directory }}/lock-db"
+        path: '{{ home_directory }}/lock-db'
         state: absent
       tags: install
-
     - name: Remove target directory
       ansible.builtin.file:
-        path: "{{ target_directory }}"
+        path: '{{ target_directory }}'
         state: absent
       tags: install
     - name: Copy MediaWiki core to target directory
       ansible.builtin.copy:
-        src: "{{ home_directory }}/mediawiki/core/{{ core_version }}/"
-        dest: "{{ target_directory }}"
-        remote_src: yes
+        src: '{{ home_directory }}/mediawiki/core/{{ core_version }}/'
+        dest: '{{ target_directory }}'
+        remote_src: true
       tags: install
     - name: Copy MediaWiki extensions to target directory
       ansible.builtin.copy:
-        src: "{{ home_directory }}/mediawiki/extensions/{{ item }}"
-        dest: "{{ target_directory }}/extensions/"
-        remote_src: yes
-      loop: "{{ mediawiki_extensions }}"
+        src: '{{ home_directory }}/mediawiki/extensions/{{ item }}'
+        dest: '{{ target_directory }}/extensions/'
+        remote_src: true
+      loop: '{{ mediawiki_extensions }}'
       tags: install
     - name: Copy MediaWiki extra extensions to target directory
       ansible.builtin.copy:
-        src: "{{ home_directory }}/mediawiki/extensions/{{ item.name }}"
-        dest: "{{ target_directory }}/extensions/"
-        remote_src: yes
-      loop: "{{ mediawiki_extra_extensions }}"
+        src: '{{ home_directory }}/mediawiki/extensions/{{ item.name }}'
+        dest: '{{ target_directory }}/extensions/'
+        remote_src: true
+      loop: '{{ mediawiki_extra_extensions }}'
       tags: install
     - name: Copy MediaWiki skins to target directory
       ansible.builtin.copy:
-        src: "{{ home_directory }}/mediawiki/skins/{{ item }}"
-        dest: "{{ target_directory }}/skins/"
-        remote_src: yes
-      loop: "{{ mediawiki_skins }}"
+        src: '{{ home_directory }}/mediawiki/skins/{{ item }}'
+        dest: '{{ target_directory }}/skins/'
+        remote_src: true
+      loop: '{{ mediawiki_skins }}'
       tags: install
     - name: Remove images directory
       ansible.builtin.file:
-        dest: "{{ target_directory }}/images"
+        dest: '{{ target_directory }}/images'
         state: absent
       tags: install
     - name: Create symlink to image directory
       ansible.builtin.file:
-        src: "{{ image_directory }}"
-        dest: "{{ target_directory }}/images"
+        src: '{{ image_directory }}'
+        dest: '{{ target_directory }}/images'
         state: link
-        force: yes
+        force: true
       tags: install
-
     - name: Run install task if needed
       ansible.builtin.command:
         argv:
-          - "{{ php_executable }}"
-          - "maintenance/install.php"
-          - "--dbname={{ database_name }}"
-          - "--dbuser={{ database_user }}"
-          - "--dbpassfile={{ database_password_file }}"
-          - "--passfile={{ wiki_admin_password_file }}"
-          - "--server={{ website_hostname }}"
-          - "--scriptpath=/"
-          - "{{ website_name }}"
-          - "{{ wiki_admin_user }}"
-        chdir: "{{ target_directory }}"
+          - '{{ php_executable }}'
+          - maintenance/install.php
+          - --dbname={{ database_name }}
+          - --dbuser={{ database_user }}
+          - --dbpassfile={{ database_password_file }}
+          - --passfile={{ wiki_admin_password_file }}
+          - --server={{ website_hostname }}
+          - --scriptpath=/
+          - '{{ website_name }}'
+          - '{{ wiki_admin_user }}'
+        chdir: '{{ target_directory }}'
       when: not installation_marker.stat.exists
       tags: install
     - name: Create installation marker file
       ansible.builtin.file:
-        path: "{{ home_directory }}/.installation-marker"
+        path: '{{ home_directory }}/.installation-marker'
         state: touch
       tags: install
-
     - name: Upload LocalSettingsExtra.php for main installation
       ansible.builtin.template:
         src: templates/LocalSettingsExtra.php.j2
-        dest: "{{ target_directory }}/LocalSettingsExtra.php"
-        mode: "664"
+        dest: '{{ target_directory }}/LocalSettingsExtra.php'
+        mode: '664'
       vars:
         is_stand_in: false
       tags: install
     - name: Upload LocalSettings.php
       ansible.builtin.template:
         src: templates/LocalSettings.php.j2
-        dest: "{{ target_directory }}/LocalSettings.php"
-        mode: "664"
-      tags:
-        - install
-        - update_settings
+        dest: '{{ target_directory }}/LocalSettings.php'
+        mode: '664'
+      tags: [install, update_settings]
     - name: Upload do_maintenance
       ansible.builtin.template:
         src: templates/do_maintenance
-        dest: "{{ target_directory }}/do_maintenance"
-        mode: "764"
-      tags:
-        - install
-        - update_settings
-
+        dest: '{{ target_directory }}/do_maintenance'
+        mode: '764'
+      tags: [install, update_settings]
     - name: Run jobs
       ansible.builtin.command:
-        argv:
-          - "{{ php_executable }}"
-          - "maintenance/run.php"
-          - "runJobs.php"
-        chdir: "{{ target_directory }}"
+        argv: ['{{ php_executable }}', maintenance/run.php, runJobs.php]
+        chdir: '{{ target_directory }}'
       tags: install
     - name: Run update task
       ansible.builtin.command:
-        argv:
-          - "{{ php_executable }}"
-          - "maintenance/run.php"
-          - "update.php"
-        chdir: "{{ target_directory }}"
+        argv: ['{{ php_executable }}', maintenance/run.php, update.php]
+        chdir: '{{ target_directory }}'
       tags: install
     - name: Run rebuildLocalisationCache task
       ansible.builtin.command:
         argv:
-          - "{{ php_executable }}"
-          - "maintenance/run.php"
-          - "rebuildLocalisationCache.php"
-        chdir: "{{ target_directory }}"
+          - '{{ php_executable }}'
+          - maintenance/run.php
+          - rebuildLocalisationCache.php
+        chdir: '{{ target_directory }}'
       tags: install
     - name: Run maintenance tasks
       ansible.builtin.command:
-        argv:
-          - "./do_maintenance"
-        chdir: "{{ target_directory }}"
-      tags:
-        - install
-        - update_settings
-
+        argv: [./do_maintenance]
+        chdir: '{{ target_directory }}'
+      tags: [install, update_settings]
     - name: Switch symlink back to main installation
       ansible.builtin.file:
-        src: "{{ target_directory }}"
-        dest: "{{ switch_symlink }}"
+        src: '{{ target_directory }}'
+        dest: '{{ switch_symlink }}'
         state: link
-        force: yes
+        force: true
       tags: install
-
     - name: Remove 'unfinished upgrade in progress' marker file
       ansible.builtin.file:
-        dest: "{{ home_directory }}/.in-progress-marker"
+        dest: '{{ home_directory }}/.in-progress-marker'
         state: absent
       tags: install
