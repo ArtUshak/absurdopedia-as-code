@@ -195,11 +195,10 @@
         state: link
         force: true
       tags: install
-    - name: Reload php fpm service
-      ansible.builtin.systemd_service:
-        name: '{{ php_fpm_service }}'
-        state: reloaded
-      become: true
+    - name: Reload PHP-FPM
+      ansible.builtin.command:
+        argv: ['sudo', 'systemctl', 'reload', '{{ php_fpm_service }}']
+      tags: install
     - name: Remove DB lock file for main installation
       ansible.builtin.file:
         path: '{{ home_directory }}/lock-db'
@@ -320,11 +319,10 @@
         state: link
         force: true
       tags: install
-    - name: Reload php fpm service
-      ansible.builtin.systemd_service:
-        name: '{{ php_fpm_service }}'
-        state: reloaded
-      become: true
+    - name: Reload PHP-FPM
+      ansible.builtin.command:
+        argv: ['sudo', 'systemctl', 'reload', '{{ php_fpm_service }}']
+      tags: install
     - name: Remove 'unfinished upgrade in progress' marker file
       ansible.builtin.file:
         dest: '{{ home_directory }}/.in-progress-marker'
